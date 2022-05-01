@@ -11,10 +11,10 @@ services:
       - ./config:/config
       - ./default:/config/nginx/site-confs/default
     environment:
-      - EMAIL=email@example.com
-      - URL=www.example.com
+      - EMAIL=${EMAIL}
+      - URL=${URL}
       - VALIDATION=http
-      - TZ=Europe/London
+      - TZ=Europe/Madrid
       - PUID=500
       - PGID=500
     ports:
@@ -22,35 +22,35 @@ services:
       - "80:80"
 
   wordpress:
-    image: wordpress:latest
+    image: arm64v8/wordpress:php8.1
     container_name: wordpress
     hostname: wordpress
     depends_on:
       - db
     restart: always
-    ports:
-      - "8080:80"
+    #    ports:
+    #  - "8080:80"
     volumes:
-      - /var/www/html/example/wp-content:/var/www/html/wp-content
-      - /var/www/html/example/custom.ini:/usr/local/etc/php/conf.d/custom.ini
+      - /opt/wp-content:/var/www/html/wp-content
+      - ./custom.ini:/usr/local/etc/php/conf.d/custom.ini
     environment:
       WORDPRESS_DB_HOST: db
-      WORDPRESS_DB_USER: wp_db_user
-      WORDPRESS_DB_PASSWORD: wp_db_pass
-      WORDPRESS_DB_NAME: wp_db_name
+      WORDPRESS_DB_USER: ${WP_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${WP_DB_PASSWORD}
+      WORDPRESS_DB_NAME: ${WP_DB_NAME}
       WORDPRESS_CONFIG_EXTRA: |
         define( 'WP_MEMORY_LIMIT', '96M' );
 
   db:
-    image: mysql:5.7
+    image: mysql/mysql-server:8.0-aarch64
     container_name: db
-    volumes:
-      - /var/lib/mysql:/var/lib/mysql
+    #volumes:
+    #  - /var/lib/mysql:/var/lib/mysql
     restart: always
-    ports:
-      - "3306:3306"
+    #ports:
+    #  - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: mysql_root_pass
-      MYSQL_DATABASE: wp_db_name
-      MYSQL_USER: wp_db_user
-      MYSQL_PASSWORD: wp_db_pass
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${WP_DB_NAME}
+      MYSQL_USER: ${WP_DB_USER}
+      MYSQL_PASSWORD: ${WP_DB_PASSWORD}
