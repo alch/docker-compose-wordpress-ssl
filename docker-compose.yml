@@ -6,20 +6,20 @@ services:
     image: linuxserver/swag
     container_name: swag
     depends_on:
-      - wordpress
+     - wordpress
     volumes:
-      - ./config:/config
-      - ./default:/config/nginx/site-confs/default
+    - ./config:/config
+    - ./default:/config/nginx/site-confs/default
     environment:
-      - EMAIL=${EMAIL}
-      - URL=${URL}
-      - VALIDATION=http
-      - TZ=Europe/Madrid
-      - PUID=500
-      - PGID=500
+    - EMAIL=${EMAIL}
+    - URL=${URL}
+    - VALIDATION=http
+    - TZ=Europe/Madrid
+    - PUID=500
+    - PGID=500
     ports:
-      - "443:443"
-      - "80:80"
+    - "443:443"
+    - "80:80"
 
   wordpress:
     image: arm64v8/wordpress:php8.1
@@ -28,11 +28,9 @@ services:
     depends_on:
       - db
     restart: always
-    #    ports:
-    #  - "8080:80"
     volumes:
-      - /opt/wp-content:/var/www/html/wp-content
-      - ./custom.ini:/usr/local/etc/php/conf.d/custom.ini
+    - wordpress:/var/www/html/wp-content
+    - ./custom.ini:/usr/local/etc/php/conf.d/custom.ini
     environment:
       WORDPRESS_DB_HOST: db
       WORDPRESS_DB_USER: ${WP_DB_USER}
@@ -44,13 +42,38 @@ services:
   db:
     image: mysql/mysql-server:8.0-aarch64
     container_name: db
-    #volumes:
-    #  - /var/lib/mysql:/var/lib/mysql
+    volumes:
+    - db:/var/lib/mysql
     restart: always
-    #ports:
-    #  - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${WP_DB_NAME}
       MYSQL_USER: ${WP_DB_USER}
       MYSQL_PASSWORD: ${WP_DB_PASSWORD}
+
+
+  sftp:
+    image: alch/sftp
+    restart: always
+    command: www-data:${WWWDATA_UID}
+    volumes:
+    - sftproot:/var/www
+    - wordpress:/var/www/html
+    ports:
+    - ${SSH_PORT}:22
+    depends_on:
+    - initdir
+
+  initdir:
+    image: alpine:3
+    environment:
+      WWWDATA_UID: ${WWWDATA_UID}
+    volumes:
+    - sftproot:/var/www
+    # must manually copy ssh public key here AFTER container creation
+    command: sh -c "mkdir -p /var/www/.ssh/ && chown -R ${WWWDATA_UID}:${WWWDATA_UID} /var/www"
+
+volumes:
+  sftproot:
+  wordpress:
+  db:
