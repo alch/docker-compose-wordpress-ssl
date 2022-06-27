@@ -5,6 +5,7 @@ services:
   swag:
     image: linuxserver/swag
     container_name: swag
+    restart: always
     depends_on:
      - wordpress
     volumes:
@@ -37,7 +38,7 @@ services:
       WORDPRESS_DB_PASSWORD: ${WP_DB_PASSWORD}
       WORDPRESS_DB_NAME: ${WP_DB_NAME}
       WORDPRESS_CONFIG_EXTRA: |
-        define( 'WP_MEMORY_LIMIT', '96M' );
+        define( 'WP_MEMORY_LIMIT', '256M' );
 
   db:
     image: mysql/mysql-server:8.0-aarch64
@@ -71,7 +72,7 @@ services:
     volumes:
     - sftproot:/var/www
     # must manually copy ssh public key here AFTER container creation
-    command: sh -c "mkdir -p /var/www/.ssh/ && chown -R ${WWWDATA_UID}:${WWWDATA_UID} /var/www"
+    command: sh -c "mkdir -p /var/www/.ssh/ && chown -R ${WWWDATA_UID}:${WWWDATA_UID} /var/www/.ssh"
 
 volumes:
   sftproot:
